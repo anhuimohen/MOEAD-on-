@@ -16,26 +16,52 @@ int main()
 	spa.write_true_value();												//将决策空间写入txt文件
 	spa.write_normalization_value();
 	*/
-	//////////////////////////////////
-	//  读取决策空间数据
 	
+	/*
 	///////////////////////////////////
 	//  算法IGD值的计算
-	read_solution(".\\evalution\\moead-5-200_EP_value_02.xls",1976,moead_solution);
-	read_solution(".\\evalution\\aes-5-200_EP_value_02.xls",1731, aesmoead_solution);
-	add_solution(moead_solution, aesmoead_solution, non_dominated_solution);
+	vector<individual> select_solution;
+
+	vector<individual> pvariation_solution;
+	vector<individual> pvariation_select_moead;
+	vector<individual> pvariation_select_moead02;
+	read_solution(".\\evalution\\aes-5-200_EP_value_.xls",2002,aesmoead_solution);
+	read_solution(".\\evalution\\moead-5-200_EP_value_.xls",2603, moead_solution);
+	read_solution(".\\evalution\\select-moead--5-200_EP_value_.xls",3348, select_solution);
+	read_solution(".\\evalution\\pvariation-5-200_EP_value_.xls", 1484, pvariation_solution);
+	read_solution(".\\evalution\\pvariation+select-5-200_EP_value_.xls", 1846, pvariation_select_moead);
+	read_solution(".\\evalution\\variation+pselect-5-200_EP_02value_.xls", 3039, pvariation_select_moead02);
+	add_solution(aesmoead_solution,non_dominated_solution);
+	add_solution(moead_solution, non_dominated_solution);
+	add_solution(select_solution, non_dominated_solution);
+	add_solution(pvariation_solution, non_dominated_solution);
+	add_solution(pvariation_select_moead, non_dominated_solution);
+	add_solution(pvariation_select_moead02, non_dominated_solution);
 	cout << cal_IGD(moead_solution, non_dominated_solution) << endl;
 	cout << cal_IGD(aesmoead_solution, non_dominated_solution) << endl;
+	cout << cal_IGD(select_solution, non_dominated_solution) << endl;
+	cout << cal_IGD(pvariation_solution, non_dominated_solution) << endl;
+	cout << cal_IGD(pvariation_select_moead, non_dominated_solution) << endl;
+	cout << cal_IGD(pvariation_select_moead02, non_dominated_solution) << endl;
 
+	cout << cal_coverage(moead_solution, select_solution) << endl;
+	cout << cal_coverage(select_solution, moead_solution)<<endl;
 	cout << cal_coverage(moead_solution, aesmoead_solution) << endl;
-	cout << cal_coverage(aesmoead_solution, moead_solution)<<endl;
+	cout << cal_coverage(aesmoead_solution, moead_solution) << endl;
+	cout << cal_coverage(aesmoead_solution, select_solution) << endl;
+	cout << cal_coverage(select_solution, aesmoead_solution) << endl;
+	cout << cal_coverage(pvariation_solution, moead_solution) << endl;
+	cout << cal_coverage(moead_solution, pvariation_solution) << endl;
 	
-
-
+	*/
+	//////////////////////////////////
+	//  读取决策空间数据
 	decision_space space;
 	space.read_true_value();
 	space.read_normalization_value();
 	space.print();
+
+
 	population pop;
 	pop.init(space);													//种群初始化													
 	cal_z_min(pop);														//计算Z*

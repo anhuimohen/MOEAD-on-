@@ -23,12 +23,9 @@ void read_solution(string str,int hangshu,vector<individual> &solution)	//读取st
 	infile.close();
 }
 
-void add_solution(vector<individual> a, vector<individual> b, vector<individual>& c)
+void add_solution(vector<individual> b, vector<individual>& c)
 {													//把a和b的解放一起，求其中的非支配解放到c中
-	for (int i = 0; i < a.size(); i++)
-	{
-		c.push_back(a[i]);
-	}
+	
 	for (int i = 0; i < b.size(); i++)
 	{
 		for (int j = 0; j < c.size(); j++)			//先删除c中被b支配的解
@@ -41,7 +38,7 @@ void add_solution(vector<individual> a, vector<individual> b, vector<individual>
 			}
 		}
 													//然后再考虑是否将b加入到c中
-		int flag = 1;								//1-c中没有支配a中解的解，可以将其加入到c中
+		int flag = 1;								//1-c中没有支配b中解的解，可以将其加入到c中
 		for (int j = 0; j < c.size(); j++)
 		{
 			if (c[j] < b[i])

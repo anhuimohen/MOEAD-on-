@@ -69,3 +69,35 @@ int attribute_flag[objective] = { 0,0,1,1,1};                     //属性极性
 		variation(b, space);
 ```
 
+###  实验结果对比
+
+```cpp
+read_solution(".\\evalution\\aes-8-200_EP_value_.xls",20954,aesmoead_solution);
+	read_solution(".\\evalution\\moead-8-200_EP_value_.xls",37318, moead_solution);
+	read_solution(".\\evalution\\select-8-200_EP_value_.xls", 49583, select_solution);
+	add_solution(aesmoead_solution,non_dominated_solution);
+	add_solution(moead_solution, non_dominated_solution);
+	add_solution(select_solution, non_dominated_solution);
+	cout << cal_IGD(moead_solution, non_dominated_solution) << endl;
+	cout << cal_IGD(aesmoead_solution, non_dominated_solution) << endl;
+	cout << cal_IGD(select_solution, non_dominated_solution) << endl;
+
+	cout << cal_coverage(moead_solution, select_solution) << endl;
+	cout << cal_coverage(select_solution, moead_solution)<<endl;
+	cout << cal_coverage(moead_solution, aesmoead_solution) << endl;
+	cout << cal_coverage(aesmoead_solution, moead_solution) << endl;
+	cout << cal_coverage(aesmoead_solution, select_solution) << endl;
+	cout << cal_coverage(select_solution, aesmoead_solution) << endl;
+```
+
+输出结果为
+
+0.00352962
+0.00748838
+0.00217626
+0.0909989
+0.13945
+0.2893
+0.0455812
+0.0293044
+0.319987

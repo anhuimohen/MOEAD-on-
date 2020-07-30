@@ -4,8 +4,8 @@
 #include <fstream>
 #include<math.h>
 #include<string>
-#define popsize 792                                                //ÖÖÈº¹æÄ£
-#define num_T  20                                                 //ÏòÁ¿ÁÚ¾ÓµÄ¸öÊı
+#define popsize 126                                                //ÖÖÈº¹æÄ£
+#define num_T  10                                                 //ÏòÁ¿ÁÚ¾ÓµÄ¸öÊı
 #define p_variate 0.1											 //±äÒì¸ÅÂÊ
 #define SBX_n 2													 //·Ö²¼Ö¸±ê nÔ½´ó±íÊ¾×Ó´úºÍ¸¸´ú¸ü½Ó½ü
 #define apap_x 400												 //×ÔÊÊÓ¦±äÒì²ÎÊı
@@ -17,6 +17,7 @@ double z_min[objective];										 //Z* ×îĞ¡Öµ
 vector<int> num_update ;										 //ÖÖÈºÖĞ¸öÌåµÄ¸üĞÂ´ÎÊı
 vector<double> mean_objective[objective];						 //¼ÇÂ¼Ëæ×Å½ø»¯´úÊıµÄÔö¼Ó·ÇÖ§ÅäÖÖÈºÄ¿±êÖµµÄ¾ùÖµ
 vector<individual> EP;											 //Íâ²¿ÖÖÈº
+double p_select_concrete[dimension][concrete_service_num];		 //¼ÇÂ¼µ±Ç°EPÖĞÃ¿Î¬Ã¿¸ö¾ßÌå·şÎñ³öÏÖµÄ¸ÅÂÊ
 
 class individual
 {
@@ -85,6 +86,7 @@ public:
 	void cal_nei_index();
 	void cal_value_g();											 //ÇĞ±ÈÑ©·ò¹«Ê½¼ÆËãµÄÄ¿±êÖµ g
 	void update(decision_space space,int dd);					 //Ö÷²Ù×÷£ºÖÖÈº¸üĞÂ
+	void select_parents(int k, individual& z, individual& x);
 };
 
 void population::init(decision_space a)
@@ -353,6 +355,41 @@ void adaptive_variation(individual& a, int dd,decision_space space)			//×ÔÊÊÓ¦±ä
 	a.cal_value(space);
 }
 
+void adaptive_variation2(individual& a, int dd, decision_space space)			//×ÔÊÊÓ¦±äÒì  dd½ø»¯´úÊı
+{
+	double p_mu = 0.2 * (1 - exp(-1 * dd / apap_x));
+	int flag = 0;															//ÊÇ·ñÔö¼ÓÍ»±ä¸ÅÂÊ	1-Ôö¼Ó
+	if (dd > 10)
+	{
+		int count = 0;
+		for (int i = dd - 1; i >= dd - 5; i--)
+		{
+			if (num_update[i] < 5)											//Èç¹ûÁ¬Ğø5´ú¸üĞÂ´ÎÊı¾ù<5£¬¾Í Ôö¼Ó0.1µÄ±äÒì¸ÅÂÊ
+				count++;
+		}
+		if (count == 5)
+			flag = 1;
+	}
+	if (flag)
+		p_mu += 0.1;
+	for (int i = 0; i < dimension; i++)
+	{
+		if (rand() % 100 / 100.0 < p_mu)
+		{
+			double p1 = rand() % 100 / 100.0;
+			for (int j = 0; j < concrete_service_num; j++)
+			{
+				if (p1 < p_select_concrete[i][j])
+				{
+					a.select[i] = j;
+					break;
+				}
+			}
+		}
+	}
+	a.cal_value(space);
+}
+
 void individual_cross(individual& a, individual& b)								//¸öÌå½»²æ
 {
 	int x1 = rand() % dimension;
@@ -373,6 +410,54 @@ void individual_cross(individual& a, individual& b)								//¸öÌå½»²æ
 		a.select[i] = b.select[i];
 		b.select[i] = x;
 	}
+}
+
+void cal_p_select_concrete()
+{
+	memset(p_select_concrete, 0, sizeof(p_select_concrete));
+	for (int i = 0; i < EP.size(); i++)
+	{
+		for (int j = 0; j < dimension; j++)
+		{
+			p_select_concrete[j][EP[i].select[j]]++;
+		}
+	}
+	for (int i = 0; i < dimension; i++)
+	{
+		int count = 0;
+		for (int j = 0; j < concrete_service_num; j++)
+		{
+			count += p_select_concrete[i][j];
+		}
+		for (int j = 0; j < concrete_service_num; j++)
+		{
+			p_select_concrete[i][j] = p_select_concrete[i][j] / (count * 1.0);
+		}
+		for (int j = 1; j < concrete_service_num; j++)
+		{
+			p_select_concrete[i][j] += p_select_concrete[i][j - 1];
+		}
+	}
+}
+
+void p_variation(individual& a, decision_space space)						//ÒÀ¾İ¸ÅÂÊ½øĞĞÂÖÅÌ¶Ä·¢±äÒì
+{
+	for (int i = 0; i < dimension; i++)
+	{
+		if (rand() % 100 / 100.0 < p_variate)
+		{
+			double p1 = rand() % 100 / 100.0;
+			for (int j = 0; j < concrete_service_num; j++)
+			{
+				if (p1 < p_select_concrete[i][j])
+				{
+					a.select[i] = j;
+					break;
+				}
+			}
+		}	
+	}
+	a.cal_value(space);
 }
 
 void variation(individual &a,decision_space space)							//¸öÌå±äÒì ¼ÆËãÄ¿±êÖµ
@@ -515,11 +600,78 @@ void save_mean_objective()													//½«µÃµ½µÄÄ¿±ê¾ùÖµËæ½ø»¯´úÊıµÄÊı¾İ±£´æÆğÀ
 	out.close();
 }
 
+void population::select_parents(int k,individual &z,individual &x)		
+{																			//Ñ¡Ôñ²Ù×÷£¬Ñ¡Ôñ¸öÌåÁÚÓòÖĞ½ÏÓÅµÄ¸öÌå
+	vector<individual> non_dominant;
+	for (int i = 0; i < num_T; i++)
+	{
+		int flag = 1;														//1-µÚi¸öÁÚ¾Ó¸öÌåÊÇ·ÇÖ§ÅäµÄ
+		for (int j = 0; j < num_T; j++)
+		{
+			if (i != j)
+			{
+				if (pop[neighbor_index[k][j]] < pop[neighbor_index[k][i]])
+				{
+					flag = 0;
+					break;
+				}
+			}
+		}
+		if (flag)
+		{
+			int fla = 1;
+			for (int q = 0; q < non_dominant.size(); q++)
+			{
+				int count = 0;
+				for (int p = 0; p < objective; p++)
+				{
+					if (pop[neighbor_index[k][i]].value[p] == non_dominant[q].value[p])
+						count++;
+				}
+				if (count == objective)
+				{
+					fla = 0; break;
+				}
+			}
+			if (fla)
+				non_dominant.push_back(pop[neighbor_index[k][i]]);
+		}
+	}
+	if (non_dominant.size() < 2)
+	{
+		int x1 = rand() % num_T;											//Ëæ»ú²úÉú¸öÌåiµÄÁ½¸öÁÚ¾Ó±àºÅ
+		int x2;
+		do
+		{
+			x2 = rand() % num_T;
+		} while (x1 == x2 );
+		int w = neighbor_index[k][x1];
+		int l = neighbor_index[k][x2];
+		 z = pop[w];
+		 x = pop[l];
+	}
+	else
+	{
+		int x1 = rand() % non_dominant.size();
+		int x2;
+		do
+		{
+			x2 = rand() % non_dominant.size();
+		} while (x1 == x2);
+		z = non_dominant[x1];
+		x = non_dominant[x2];
+	}
+}
+
 void population::update(decision_space space,int dd)
 { 
 	int number_update = 0;													//Ã¿ÂÖ¸öÌåµÄ¸üĞÂ´ÎÊı
 	for (int i = 0; i < popsize; i++)
 	{
+		individual a, b, c;
+		//////////////////////////////
+		//  Ëæ»úÑ¡ÔñÁÚ¾ÓÖĞµÄÁ½¸ö¸öÌå
+		/*
 		int x1 = rand() % num_T;											//Ëæ»ú²úÉú¸öÌåiµÄÁ½¸öÁÚ¾Ó±àºÅ
 		int x2,x3;
 		do
@@ -530,10 +682,14 @@ void population::update(decision_space space,int dd)
 		int k = neighbor_index[i][x1];
 		int l = neighbor_index[i][x2];
 		int j = neighbor_index[i][x3];
-		individual a = pop[k];
-		individual b = pop[l];
-		individual c = pop[j];
-		
+		a = pop[k];
+		b = pop[l];
+		c = pop[j];
+		*/
+		//////////////////////////////////
+		//  Ñ¡ÔñÁÚ¾ÓÖĞµÄ·ÇÖ§Åä¸öÌå×÷Îª¸¸´ú
+		select_parents(i, a, b);
+		/*
 		double update_rate = 0;												//¸öÌå¸üĞÂÆµÂÊ
 		if (dd > 10)
 		{
@@ -551,10 +707,23 @@ void population::update(decision_space space,int dd)
 			DE(a, b,c);
 		adaptive_variation(a,dd,space);
 		adaptive_variation(b, dd, space);
-		
-		//individual_cross(a, b);
-		//variation(a, space);
-		//variation(b, space);
+		*/
+
+
+		individual_cross(a, b);
+
+		/////////////////////////
+		//  ÒÀ¾İ¸ÅÂÊÂÖÅÌ¶Ä±äÒì  --Ğ§¹û²î
+		/*
+		cal_p_select_concrete();
+		p_variation(a, space);
+		p_variation(b, space);
+		*/
+		//////
+
+
+		variation(a, space);
+		variation(b, space);
 		z_min_update(a);
 		z_min_update(b);
 		cal_value_g();
